@@ -1,0 +1,7 @@
+## --- Packages
+#set( $entityPackage       = "${ROOT_PKG}.entity" )
+#set( $dtoPackage          = "${ROOT_PKG}.dto" )
+#set( $enumPackage         = "${ROOT_PKG}.enumdef" )
+#set( $entityRepository    = "${ROOT_PKG}.repository" )
+#set( $servicePackage      = "${ROOT_PKG}.service" )
+#set( $entityImplPackage   = "${ROOT_PKG}.service.impl" )

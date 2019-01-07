@@ -1,0 +1,30 @@
+#parse("/include/packages_variables.vm")
+#parse("/include/init_var_entity.vm")
+#parse("/include/java_header.vm")
+#set( $serviceName = "${entity.name}Service" )
+#set( $dtoSearchName = "${entity.name}SearchDto" )
+#set( $uncapitalizedSearchDtoName = $fn.uncapitalize($dtoSearchName) )
+#set( $uncapitalizedEntityName = $fn.uncapitalize($entity.name) )
+
+package ${target.javaPackageFromFolder($SRC)};
+
+import java.util.Locale;
+import javax.servlet.http.HttpServletResponse;
+import vn.com.unit.jcanary.common.PageWrapper;
+//-- Dto Search
+import ${dtoPackage}.${dtoSearchName};
+//-- Entity
+import ${entityPackage}.${entity.name};
+
+public interface ${serviceName} {
+
+	public PageWrapper<${entity.name}> doSearch(int page, ${dtoSearchName} searchDto);
+	
+	public void saveOrUpdate(${entity.name} ${uncapitalizedEntityName});
+
+	public ${entity.name} get${entity.name}ById(Long id);
+
+	public void deleteItem(Long id);
+	
+	public void exportExcel($dtoSearchName searchDto, HttpServletResponse res, Locale locale);
+}

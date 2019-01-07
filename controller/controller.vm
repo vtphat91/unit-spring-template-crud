@@ -1,0 +1,301 @@
+#parse("/include/packages_variables.vm")
+#parse("/include/init_var_entity.vm")
+#parse("/include/java_header.vm")
+
+#set( $urlEntityName = $fn.toLowerCase($entity.name))
+#set( $uncapitalizedEntityName = $fn.uncapitalize($entity.name) )
+#set( $referencedEntities = $entity.referencedEntityTypes() )
+#set( $serviceName = "${entity.name}Service")
+#set( $uncapitalizedServiceName = $fn.uncapitalize($serviceName) )
+#set( $searchDtoName = "${entity.name}SearchDto")
+#set( $enumSearchName = "${entity.name}SearchEnum")
+
+package ${target.javaPackageFromFolder($SRC)};
+
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.Locale;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import vn.com.unit.constant.ConstantCore;
+import vn.com.unit.constant.Message;
+import vn.com.unit.constant.MessageList;
+import vn.com.unit.jcanary.authentication.UserProfileUtils;
+import vn.com.unit.jcanary.common.PageWrapper;
+import vn.com.unit.jcanary.constant.UrlConst;
+import vn.com.unit.jcanary.constant.ViewConstant;
+import vn.com.unit.jcanary.controller.AbstractController;
+import vn.com.unit.jcanary.utils.SearchUtil;
+import org.springframework.web.bind.annotation.PostMapping;
+
+//--- import Entities
+import ${entityPackage}.${entity.name};
+//--- import SearchDto
+import ${dtoPackage}.${searchDtoName};
+//--- import $searchDtoName
+import ${servicePackage}.${serviceName};
+//--- import $enumSearchName
+import ${enumPackage}.${enumSearchName};
+
+/**
+ * Spring MVC controller for '${entity.name}' management.
+ */
+@Controller
+@RequestMapping("/${urlEntityName}")
+public class ${entity.name}Controller extends AbstractController {
+
+	private static final String VIEW_LIST = "${urlEntityName}.list";
+    
+    private static final String VIEW_TABLE = "${urlEntityName}.table";
+    
+    private static final String VIEW_DETAIL  = "${urlEntityName}.detail";
+
+	private static final String VIEW_EDIT  = "${urlEntityName}.edit";
+    /**Define Role for this page - ROLE_AUTHED for default*/
+    private static final String SCREEN_FUNCTION_CODE = "ROLE_AUTHED"; // RoleConstant.${entity.name}
+	
+	private static final String URL_ENTITY = "/${urlEntityName}";
+
+	@Autowired
+    private MessageSource msg;
+
+	@Autowired
+    private ${serviceName} ${uncapitalizedServiceName};
+
+	/**
+     * showList
+     *
+     * @param searchDto
+     * @param page
+     * @param locale
+     * @return
+     * @author phatvt
+     */
+    @GetMapping(UrlConst.LIST)
+    public ModelAndView showList(@ModelAttribute(value = "searchDto") ${searchDtoName} searchDto
+            , @RequestParam(value = "page", required = false, defaultValue = "1") int page, Locale locale)  {
+        // Security for this page.
+        if(this.securityForPage()){
+			return new ModelAndView(ViewConstant.ACCESS_DENIED_MODELANDVIEW);
+		}
+        
+        ModelAndView mav = new ModelAndView(VIEW_LIST);
+        // set init search
+        SearchUtil.setSearchSelect(${enumSearchName}.class, mav);
+
+        PageWrapper<${entity.name}> pageWrapper = ${uncapitalizedServiceName}.doSearch(page, searchDto);
+		if(pageWrapper.getData()== null) {
+        	pageWrapper.setData(new ArrayList<>());
+        }
+        mav.addObject("pageWrapper", pageWrapper);
+        mav.addObject("searchDto", searchDto);
+        return mav;
+    }
+
+	/**
+     * ajaxList
+     *
+     * @param searchDto
+     * @param page
+     * @param locale
+     * @return
+     * @author phatvt
+     */
+    @PostMapping(UrlConst.AJAXLIST)
+    public ModelAndView ajaxListEmail(@ModelAttribute(value = "searchDto") ${searchDtoName} searchDto
+            , @RequestParam(value = "page", required = false, defaultValue = "1") int page, Locale locale)  {
+        ModelAndView mav = new ModelAndView(VIEW_TABLE);
+        // Security for this page.
+        if(this.securityForPage()){
+			return new ModelAndView(ViewConstant.ACCESS_DENIED_MODELANDVIEW);
+		}
+        // set init search
+        SearchUtil.setSearchSelect(${enumSearchName}.class, mav);
+
+        PageWrapper<${entity.name}> pageWrapper = ${uncapitalizedServiceName}.doSearch(page, searchDto);
+        if( pageWrapper.getCountAll() == 0 ) {
+            // Init message list
+            MessageList messageList = new MessageList(Message.INFO);
+            String msgInfo = msg.getMessage(ConstantCore.MSG_INFO_SEARCH_NO_DATA, null, locale);
+            messageList.add(msgInfo);
+            mav.addObject(ConstantCore.MSG_LIST, messageList);
+        } 
+        
+        mav.addObject("pageWrapper", pageWrapper);
+        mav.addObject("searchDto", searchDto);
+        return mav;
+    }
+
+	/**
+     * getEdit
+     *
+     * @param searchDto
+     * @param page
+     * @param locale
+     * @return
+     * @author phatvt
+     */
+	@GetMapping(UrlConst.EDIT)
+    public ModelAndView getEdit(@RequestParam(value = "id", required = false) Long id, Locale locale) {
+        ModelAndView mav = new ModelAndView(VIEW_EDIT);
+        // Security for this page.
+        if(this.securityForPage()){
+			return new ModelAndView(ViewConstant.ACCESS_DENIED_MODELANDVIEW);
+		}
+        ${entity.name} ${uncapitalizedEntityName} = ${uncapitalizedServiceName}.get${entity.name}ById(id);
+        
+        // set url ajax
+        String url = "${urlEntityName}".concat(UrlConst.EDIT);
+        if (null != id) {
+            url = url.concat("?id=").concat(id.toString());
+        }
+        ${uncapitalizedEntityName}.setUrl(url);
+        
+        mav.addObject("${uncapitalizedEntityName}", ${uncapitalizedEntityName});
+        return mav;
+    }
+
+	/**
+     * postEdit
+     *
+     * @param bindingResult
+     * @param locale
+     * @param redirectAttributes
+     * @param request
+     * @return ModelAndView
+     * @author phatvt
+     */
+    @PostMapping(UrlConst.EDIT)
+    public ModelAndView postEdit(@Valid @ModelAttribute(value = "${uncapitalizedEntityName}") ${entity.name} ${uncapitalizedEntityName}, BindingResult bindingResult,
+            Locale locale, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+    	Long id = ${uncapitalizedEntityName}.getId();
+        ModelAndView mav = new ModelAndView(VIEW_EDIT); 
+        // Security for this page.
+        this.securityForPage();
+        //Init message list
+        MessageList messageList = new MessageList(Message.SUCCESS);
+        //${uncapitalizedEntityName}Validator.validate(${uncapitalizedEntityName}, bindingResult);
+        
+        //Validation
+        if (bindingResult.hasErrors()) {
+            // Add message error
+            messageList.setStatus(Message.ERROR);
+            String msgError = msg.getMessage(ConstantCore.MSG_ERROR_UPDATE, null, locale);
+            messageList.add(msgError);
+            mav.addObject(ConstantCore.MSG_LIST, messageList);
+            mav.addObject("${uncapitalizedEntityName}", ${uncapitalizedEntityName});
+            return mav;
+        }      
+        // Update Item
+        ${uncapitalizedServiceName}.saveOrUpdate(${uncapitalizedEntityName});
+        // Message Alert
+        String msgInfo = "";        
+        if (null != id){
+            msgInfo = msg.getMessage(ConstantCore.MSG_SUCCESS_UPDATE, null, locale);
+        }else{
+            msgInfo = msg.getMessage(ConstantCore.MSG_SUCCESS_CREATE, null, locale);
+        }
+        messageList.add(msgInfo);
+        redirectAttributes.addFlashAttribute(ConstantCore.MSG_LIST, messageList);
+        // View Name
+        String viewName = UrlConst.REDIRECT.concat(URL_ENTITY).concat(UrlConst.EDIT); 
+        id = ${uncapitalizedEntityName}.getId();
+        redirectAttributes.addAttribute("id", id);
+        mav.setViewName(viewName);        
+        
+        return mav;
+    }
+
+	/**
+     * postDelete
+     * @param locale
+     * @param redirectAttributes
+     * @param request
+     * @return ModelAndView
+     * @author phatvt
+     */
+    @PostMapping(UrlConst.DELETE)
+    public ModelAndView postDelete(@RequestParam(value = "id", required = true) Long id,
+ 		Locale locale,RedirectAttributes redirectAttributes, HttpServletRequest request) {
+        
+		// Security for this page.
+        if(this.securityForPage()){
+			return new ModelAndView(ViewConstant.ACCESS_DENIED_MODELANDVIEW);
+		}
+        ${uncapitalizedServiceName}.deleteItem(id);
+       //Init message list
+       MessageList messageList = new MessageList(Message.SUCCESS);
+       String msgInfo = msg.getMessage(ConstantCore.MSG_SUCCESS_DELETE, null, locale);
+       messageList.add(msgInfo);
+       redirectAttributes.addFlashAttribute(ConstantCore.MSG_LIST, messageList);
+               
+        // Delete success redirect list page
+        String viewName = UrlConst.REDIRECT.concat(URL_ENTITY).concat(UrlConst.LIST);
+        ModelAndView mav = new ModelAndView(viewName);                                    
+        return mav;
+    }
+
+	/**
+     * getDetail
+     *
+     * @param id
+     * @param locale
+     * @return
+     * @author phatvt
+     */
+    @GetMapping(UrlConst.DETAIL)
+    public ModelAndView getDetail(@RequestParam(value = "id", required = true) Long id, Locale locale) {
+
+        ModelAndView mav = new ModelAndView(VIEW_DETAIL);        
+        // Security for this page.
+        if(this.securityForPage()){
+			return new ModelAndView(ViewConstant.ACCESS_DENIED_MODELANDVIEW);
+		}
+        ${entity.name} ${uncapitalizedEntityName} = ${uncapitalizedServiceName}.get${entity.name}ById(id);
+        
+        // set url ajax
+        String url = "${urlEntityName}".concat(UrlConst.DETAIL);
+        if (null != id) {
+            url = url.concat("?id=").concat(id.toString());
+        }
+        ${uncapitalizedEntityName}.setUrl(url);
+        
+        mav.addObject("${uncapitalizedEntityName}", ${uncapitalizedEntityName});
+        return mav;
+    }  
+
+	/**
+	 * 
+	 * @param systemLogsDto
+	 * @param req
+	 * @param res
+	 * @param locale
+	 * @author phatvt
+	 */
+	@PostMapping("/export-excel")
+    public void exportListNonExport(@ModelAttribute(value = "searchDto") $searchDtoName searchDto, HttpServletRequest req,
+            HttpServletResponse res, Locale locale) {
+        try {
+            ${uncapitalizedServiceName}.exportExcel(searchDto, res, locale);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+	
+	private boolean securityForPage(){
+		return (!UserProfileUtils.hasRole(SCREEN_FUNCTION_CODE)
+                && !UserProfileUtils.hasRole(SCREEN_FUNCTION_CODE.concat(ConstantCore.COLON_DISP))
+                && !UserProfileUtils.hasRole(SCREEN_FUNCTION_CODE.concat(ConstantCore.COLON_EDIT))); 
+	}
+}

@@ -1,0 +1,72 @@
+#parse("/include/packages_variables.vm")
+#parse("/include/init_var_entity.vm")
+#parse("/include/java_header.vm")
+package ${target.javaPackageFromFolder(${SRC})};
+
+#foreach( $import in $java.imports($entity.attributes) )
+import $import;
+#end
+import java.util.List;
+##--------------------------------------------------------------------------------------------------------
+## Data fields = fields not in Primary Key and not in selected Links    
+#set( $dataFields = $entity.getAttributesByCriteria( $const.NOT_KEY, $const.NOT_IN_SELECTED_LINKS ) )
+##--------------------------------------------------------------------------------------------------------
+
+/**
+ * Domain class for dto "${entity.name}"
+ *
+ * @author phatvt
+ *
+ */
+public class ${entity.name}SearchDto {
+
+
+    //----------------------------------------------------------------------
+    //  DATA FIELDS 
+    //----------------------------------------------------------------------    
+#foreach( $field in $dataFields )
+    private $field.formattedType(10) $field.formattedName(12) #if($field.hasInitialValue())= ${field.initialValue} #end;
+#end
+	//search multiple
+    /** fieldSearch */
+    private String fieldSearch;
+    
+    /** fieldValues */
+    private List<String> fieldValues;
+
+    //----------------------------------------------------------------------
+    // CONSTRUCTOR(S)
+    //----------------------------------------------------------------------
+    public ${entity.name}SearchDto() {
+		super();
+    }
+
+    //----------------------------------------------------------------------
+    // GETTERS & SETTERS FOR "DATA FIELDS"
+    //----------------------------------------------------------------------
+#foreach( $attribute in $dataFields )
+    public void ${attribute.setter}( $attribute.type $attribute.name ) {
+        this.$attribute.name = $attribute.name ;
+    }
+    public $attribute.type ${attribute.getter}() {
+        return this.$attribute.name;
+    }
+
+#end
+	public String getFieldSearch() {
+        return fieldSearch;
+    }
+
+    public void setFieldSearch(String fieldSearch) {
+        this.fieldSearch = fieldSearch;
+    }
+
+    public List<String> getFieldValues() {
+        return fieldValues;
+    }
+
+    public void setFieldValues(List<String> fieldValues) {
+        this.fieldValues = fieldValues;
+    }
+
+}

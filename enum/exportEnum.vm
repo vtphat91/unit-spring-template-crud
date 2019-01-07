@@ -1,0 +1,36 @@
+#parse("/include/packages_variables.vm")
+#parse("/include/init_var_entity.vm")
+#parse("/include/java_header.vm")
+#set( $dataFields = $entity.getAttributesByCriteria( $const.NOT_KEY, $const.NOT_IN_SELECTED_LINKS ) )
+#set( $entityLC = $fn.toLowerCase($entity.name) )
+#set($sizeFields = $fn.size($dataFields))
+#set($count = 0)
+#set($countExport = 0)
+package ${target.javaPackageFromFolder(${SRC})};
+public enum ${entity.name}ExportEnum {
+
+    //----------------------------------------------------------------------
+    //  DATA FIELDS 
+    //----------------------------------------------------------------------    
+
+	#foreach( $field in $dataFields )
+#set($count = $count + 1)
+#if($count == $sizeFields)
+$fn.toUpperCase($field.formattedName(2))("$countExport");
+#end
+#if($count < $sizeFields)
+$fn.toUpperCase($field.formattedName(2))("$countExport"),
+#end
+#set($countExport = $countExport + 1)
+	#end
+    
+    private String value;
+    
+    private ${entity.name}ExportEnum(String value){
+        this.value = value;
+    }
+    
+    public String toString (){
+        return value;
+    }
+}

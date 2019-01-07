@@ -1,0 +1,42 @@
+#set( $nameLC = ${entity.name.toLowerCase()} )
+
+${DOLLAR}(function(){
+	//on click cancel
+	${DOLLAR}('#cancel').on('click', function (event) {
+		event.preventDefault();
+		var url = BASE_URL + "$nameLC/list";
+		
+		// Redirect to page list
+		ajaxRedirect(url);
+	});
+	
+	//on click list
+	${DOLLAR}('#linkList').on('click', function (event) {
+		event.preventDefault();
+		var url = BASE_URL + "${nameLC}/list";
+
+		// Redirect to page list
+		ajaxRedirect(url);
+	});
+	
+	// on click add
+	${DOLLAR}("#add").on("click", function(event) {
+		var url = BASE_URL + "${nameLC}/edit";
+		// Redirect to page add
+		ajaxRedirect(url);
+	});	
+
+	// Post edit save
+	${DOLLAR}('#btn-save').on('click', function(event) {
+		if (${DOLLAR}(".j-form-validate").valid()) {
+			var url = "${nameLC}/edit";
+			var condition = ${DOLLAR}("#form-edit").serialize();
+			ajaxSubmit(url, condition, event);
+		}			
+		goTopPage();
+	});
+
+	function goTopPage(){
+		${DOLLAR}("html, body").animate({ scrollTop: 0 }, "1");
+	}
+});

@@ -1,0 +1,94 @@
+#parse("/include/packages_variables.vm")
+#parse("/include/init_var_entity.vm")
+#parse("/include/java_header.vm")
+package ${target.javaPackageFromFolder(${SRC})};
+
+#foreach( $import in $java.imports($entity.attributes) )
+import $import;
+#end
+
+##--------------------------------------------------------------------------------------------------------
+## Data fields = fields not in Primary Key and not in selected Links    
+#set( $dataFields = $entity.getAttributesByCriteria( $const.NOT_KEY, $const.NOT_IN_SELECTED_LINKS ) )
+
+
+import org.springframework.data.annotation.Id;
+
+import jp.sf.amateras.mirage.annotation.Column;
+import jp.sf.amateras.mirage.annotation.PrimaryKey;
+import jp.sf.amateras.mirage.annotation.PrimaryKey.GenerationType;
+import jp.sf.amateras.mirage.annotation.Table;
+import jp.sf.amateras.mirage.annotation.Transient;
+/**
+ * Domain class for entity "${entity.name}"
+ *
+ * @author phatvt
+ *
+ */
+@Table(name = "${entity.databaseTable}")
+public class ${entity.name} {
+
+
+    //----------------------------------------------------------------------
+    // ENTITY PRIMARY KEY 
+    //----------------------------------------------------------------------
+#foreach( $field in $entity.keyAttributes )
+	@Id
+	@PrimaryKey(generationType = GenerationType.SEQUENCE, generator = "SEQ_${entity.databaseTable}")
+	@Column(name = "$fn.toUpperCase($field.formattedName(0))")
+    private Long $field.formattedName(0);
+#end
+
+    //----------------------------------------------------------------------
+    // ENTITY DATA FIELDS 
+    //----------------------------------------------------------------------  
+  
+#foreach( $field in $dataFields )
+	/** Column: $field.formattedName(0) $fn.toUpperCase(${field.databaseType})(${field.databaseSize}) */
+    @Column(name = "$field.databaseName")  
+    private $field.formattedType(0) $field.formattedName(0);
+
+#end
+	@Transient
+	private String url;
+    //----------------------------------------------------------------------
+    // CONSTRUCTOR(S)
+    //----------------------------------------------------------------------
+    public ${entity.name}() {
+		super();
+    }
+    
+    //----------------------------------------------------------------------
+    // GETTER & SETTER FOR "KEY FIELD(S)"
+    //----------------------------------------------------------------------
+#foreach( $attribute in $entity.keyAttributes )
+    public void ${attribute.setter}( Long $attribute.name ) {
+        this.$attribute.name = $attribute.name ;
+    }
+    public Long ${attribute.getter}() {
+        return this.$attribute.name;
+    }
+#end	
+
+    //----------------------------------------------------------------------
+    // GETTERS & SETTERS FOR "DATA FIELDS"
+    //----------------------------------------------------------------------
+#foreach( $attribute in $dataFields )
+    public void ${attribute.setter}( $attribute.type $attribute.name ) {
+        this.$attribute.name = $attribute.name ;
+    } 
+
+    public $attribute.type ${attribute.getter}() {
+        return this.$attribute.name;
+    }
+
+#end
+	public void setUrl(String url){
+		this.url = url;
+	}
+
+	public String getUrl(){
+		return this.url;
+	}
+
+}

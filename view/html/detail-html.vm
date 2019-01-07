@@ -1,0 +1,71 @@
+#set( $dataFields = $entity.getAttributesByCriteria( $const.NOT_KEY, $const.NOT_IN_SELECTED_LINKS ) )
+#set( $entityLC = $fn.toLowerCase($entity.name))
+#set( $nameLC = ${entity.name.toLowerCase()} )
+#set( $uncapitalizedEntityName = $fn.uncapitalize($entity.name) )
+#set( $halfSizeFields = $fn.size($dataFields)/2)
+#set( $countField = 0)
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<body>		
+	<div class="title-head clearfix">
+	   <div class="col-sm-9 col-xs-7 no-padding">
+			<h3>
+				<i class="fa fa-table"></i>
+				<span th:text="#{${nameLC}.title}">Tiêu đề trang</span>
+			</h3>
+	   </div>
+	   <div class="col-sm-3 col-xs-5 icon-head">
+	        <div class="pull-right">
+				 <a>
+				 	<i class="fa fa-arrow-circle-left icon-head-red" id="linkList"></i>
+				 </a>
+				 <a>
+				 	<i class="fa fa-plus-circle icon-head-red" id = "add"></i>
+				 </a>
+	        </div>
+	   </div>
+	</div>	
+	<form class="form-horizontal u-for-page-top j-form-validate" id="form-edit" th:action="@{/}" th:object="${DOLLAR}{${uncapitalizedEntityName}}" method="post" role="form">
+		<th:block th:include="views/commons/message-alert.html :: content(${DOLLAR}{messageList})"/>
+		<div class="bg-content clearfix">
+			<div class="header-box">
+				<h2 class="title-box" th:text="#{repository.edit.title}" th:if="${DOLLAR}{${uncapitalizedEntityName}.id != null}">Update</h2>
+				<h2 class="title-box" th:text="#{repository.create.title}" th:if="${DOLLAR}{${uncapitalizedEntityName}.id == null}">Create</h2>
+			</div>			                           
+            <input type="hidden" th:field="*{id}" />
+            <div class="col-sm-12 p-0">
+				<div class="col-md-6">
+#foreach($field in $dataFields)
+#set($countField = $countField  + 1)
+#if($countField <= $halfSizeFields)
+					<div class="form-group" >
+                        <label class="col-sm-4" for="subFolderRule" th:text="#{${nameLC}.$field.formattedName(0)}">${field.label}̃</label>
+                        <div class="col-sm-8" >
+                            <label class="form-control" th:text="*{$field.formattedName(0)}" > </label>                      
+                        </div>
+                    </div>
+#end
+#end
+				</div>
+				<div class="col-md-6">
+#set($countField = 0)
+#foreach($field in $dataFields)
+#set($countField = $countField  + 1)
+#if($countField > $halfSizeFields)
+					<div class="form-group" >
+                        <label class="col-sm-4" for="subFolderRule" th:text="#{${nameLC}.$field.formattedName(0)}">${field.label}̃</label>
+                        <div class="col-sm-8" >
+                            <label class="form-control" th:text="*{$field.formattedName(0)}" > </label>                      
+                        </div>
+                    </div>
+#end
+#end
+				</div>
+			</div>
+		</div>
+	</form>	
+	<input type="hidden" id="url" name="url" th:value="${DOLLAR}{${uncapitalizedEntityName}.url}"/>
+	<script type="text/javascript" th:src="@{/static/js/${nameLC}/${nameLC}-detail.js}"></script>
+	</body>
+</html>

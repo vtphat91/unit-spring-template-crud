@@ -1,0 +1,15 @@
+#parse("/include/packages_variables.vm")
+
+#foreach( $entity in $selectedEntities )
+#set( $entityLC = $fn.toLowerCase($entity.name) )
+${SHARP} ---------- Messages for entity "$entity.name" VI
+${entityLC}=${entity.name}
+${entityLC}.list=${entityLC}s
+${entityLC}.title=$fn.firstCharToUpperCase(${entity.name})
+${entityLC}.edit.title = Edit
+${entityLC}.create.title = Update
+#foreach( $field in ${entity.attributes} )
+${entityLC}.${field.formattedName(0)}=${field.label}
+#end
+#end
+

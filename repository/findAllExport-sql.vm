@@ -1,0 +1,19 @@
+#set( $dataFields = $entity.getAttributesByCriteria( $const.NOT_KEY, $const.NOT_IN_SELECTED_LINKS ) )
+select *
+from ${entity.databaseTable} tb_
+WHERE
+1=1
+/*BEGIN*/
+	AND (
+#foreach($field in $dataFields)
+#if($field.jdbcTypeName != 'TIMESTAMP')
+/*IF searchDto.$fn.uncapitalize($field.formattedName(0)) != null && searchDto.$fn.uncapitalize($field.formattedName(0)) != ''*/
+	OR tb_.$field.databaseName LIKE concat('%',  /*searchDto.$fn.uncapitalize($field.formattedName(0))*/, '%')
+/*END*/
+
+#end
+#end
+	)
+/*END*/
+AND tb_.delete_by is null
+ORDER BY tb_.ID DESC

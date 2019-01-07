@@ -1,0 +1,54 @@
+#parse("/include/packages_variables.vm")
+#parse("/include/init_var_entity.vm")
+#parse("/include/java_header.vm")
+
+#set( $repositoryName = "${entity.name}Repository" )
+#set( $dtoSearchName = "${entity.name}SearchDto" )
+#set( $uncapitalizedEntityName = $fn.uncapitalize($entity.name) )
+
+
+package ${target.javaPackageFromFolder($SRC)};
+
+//-- DTO search
+import ${dtoPackage}.${dtoSearchName};
+//-- Entity
+import ${entityPackage}.${entity.name};
+import java.util.List;
+import org.springframework.data.mirage.repository.MirageRepository;
+import org.springframework.data.repository.query.Param;
+
+public interface ${repositoryName} extends MirageRepository<${entity.name}, Long> {
+
+	/**
+     * findAll${entity.name}sByCondition
+     *
+     * @param offset
+     * @param sizeOfPage
+     * @param searchDto
+     * @return
+     * @author phatvt
+     */
+    public List<${entity.name}> findAll${entity.name}sByCondition(
+            @Param("offset") int offset,
+            @Param("sizeOfPage") int sizeOfPage, 
+            @Param("searchDto") ${dtoSearchName} searchDto);
+
+	/**
+     * count${entity.name}ByCondition
+     *
+     * @param searchDto
+     * @return
+     * @author phatvt
+     */
+    public int count${entity.name}ByCondition( @Param("searchDto")${dtoSearchName} searchDto);
+
+	/**
+     * findAll${entity.name}sByCondition
+     *
+     * @param searchDto
+     * @return
+     * @author phatvt
+     */
+	public List<${entity.name}> exportExcelWithCondition(
+            @Param("searchDto") ${dtoSearchName} searchDto);
+}

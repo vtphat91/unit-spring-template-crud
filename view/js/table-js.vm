@@ -1,0 +1,126 @@
+#set( $nameLC = ${entity.name.toLowerCase()} )
+
+${DOLLAR}(function(){
+	${DOLLAR}('select[multiple]').multiselect({
+	    columns: 1,
+	    placeholder: SEARCH_LABEL,
+	    search: true
+	});
+	
+	// datatable load
+	${DOLLAR}("#tableList").datatables({
+		url : BASE_URL + '${nameLC}/ajaxList',
+		type : 'POST',
+		setData : setConditionSearch
+	});
+	
+	// init date picker
+	${DOLLAR}('.date').datepicker({
+		format: 'dd/mm/yyyy',
+		viewMode : "days",
+		minViewMode : "days",
+		autoclose : true,
+		language : '${DOLLAR}{sessionScope.localeSelect}',
+		todayHighlight : true,
+		onRender : function(date) {
+		}
+	})
+	
+	// on click search
+	${DOLLAR}("#btnSearch").on('click', function(event) {
+		onClickSearch(this, event);
+	});
+
+	// on click edit
+	${DOLLAR}(".j-btn-edit").on("click", function(event) {
+		editItem(this, event);
+	});
+	
+	// on click delete
+	${DOLLAR}(".j-btn-delete").on("click", function( event ) {
+		deleteItem(this, event);
+	});
+
+	// on click add
+	${DOLLAR}("#add").on("click", function(event) {
+		var url = BASE_URL + "${nameLC}/edit";
+		// Redirect to page add
+		ajaxRedirect(url);
+	});
+
+	// on click detail
+	${DOLLAR}(".j-btn-detail").on("click", function(event) {
+		detailItem(this, event);
+	});
+
+	${DOLLAR}('#btnExport').click(function() {
+		var linkExport = "${nameLC}/export-excel";
+		doExportExcel(linkExport);
+	});
+})
+
+function setConditionSearch() {
+	var condition = {};
+	condition["fieldSearch"] = ${DOLLAR}("#fieldSearchHidden").val();
+	condition["fieldValues"] = ${DOLLAR}("#fieldValuesHidden").val();
+	//condition["toDate"] = ${DOLLAR}("#toDate").val();
+	//condition["fromDate"] = ${DOLLAR}("#fromDate").val();
+	return condition;
+}
+
+function setDataSearchHidden() {
+	${DOLLAR}("#fieldSearchHidden").val(${DOLLAR}("#fieldSearch").val());
+	${DOLLAR}("#fieldValuesHidden").val(${DOLLAR}("select[name=fieldValues]").val());
+}
+
+function onClickSearch(element, event) {
+	setDataSearchHidden();
+	ajaxSearch("${nameLC}/ajaxList", setConditionSearch(), "tableList", element, event);
+}
+
+function editItem(element, event) {
+	event.preventDefault();
+
+	// Prepare data
+	var row = ${DOLLAR}(element).parents("tr");
+	var id = row.data("id");
+	var url = BASE_URL + "${nameLC}/edit?id=" + id;
+
+	// Redirect to page detail
+	ajaxRedirect(url);
+}
+
+function deleteItem(element, event){
+	event.preventDefault();
+	
+	// Prepare data
+	var row = ${DOLLAR}(element).parents("tr");
+	var id = row.data("id");
+	
+	popupConfirm( MSG_DEL_CONFIRM, function(result) {
+		if (result) {
+			var url = "${nameLC}/delete";
+			var condition = {
+				"id" : id
+			}
+			ajaxSubmit(url, condition, event);
+		}			
+	});
+}
+
+function detailItem(element, event) {
+	event.preventDefault();
+
+	// Prepare data
+	var row = $(element).parents("tr");
+	var id = row.data("id");
+	var url = BASE_URL + "${nameLC}/detail?id=" + id;
+
+	// Redirect to page detail
+	ajaxRedirect(url);
+}
+
+function doExportExcel(linkExport) {
+	${DOLLAR}("#formSearch").attr("action", BASE_URL + linkExport);
+	${DOLLAR}("#formSearch").submit();
+}
