@@ -134,19 +134,22 @@ public class ${serviceImplName} implements ${serviceName}{
 		String userNameLogin = UserProfileUtils.getUserNameLogin();
         Long id = ${uncapitalizedEntityName}.getId();
         if( null != id ) {
-        	${uncapitalizedEntityName} = ${uncapitalizedRepoName}.findOne(id);
-            if(null == ${uncapitalizedEntityName}) {
+        	${entity.name} source = ${uncapitalizedRepoName}.findOne(id);
+            if(null == source) {
                 throw new BusinessException( "Not found ${entity.name} by id= " + id);
             }
-            ${uncapitalizedEntityName}.setUpdateBy(userNameLogin);
-            ${uncapitalizedEntityName}.setUpdateDate(new Date());
+			updateData(source, ${uncapitalizedEntityName});
+			source.setDeleteBy(null);
+            //source.setUpdateBy(userNameLogin);
+            //source.setUpdateDate(new Date());
+			${uncapitalizedRepoName}.save(source);
 			
         }else{
-        	${uncapitalizedEntityName}.setCreateBy(userNameLogin);
-        	${uncapitalizedEntityName}.setCreateDate(new Date());
+        	//${uncapitalizedEntityName}.setCreateBy(userNameLogin);
+        	//${uncapitalizedEntityName}.setCreateDate(new Date());
+			${uncapitalizedRepoName}.save(${uncapitalizedEntityName});
         }
 		
-        ${uncapitalizedRepoName}.save(${uncapitalizedEntityName});
 	}
 
 	@Override
@@ -184,4 +187,10 @@ public class ${serviceImplName} implements ${serviceName}{
             e.printStackTrace();
         }
     }
+
+	public void updateData(${entity.name} source, ${entity.name} target){
+#foreach( $field in $dataFields )	
+		source.${field.setter}(target.${field.getter}());
+#end		
+	}
 }
