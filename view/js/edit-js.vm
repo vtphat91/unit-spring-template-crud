@@ -27,7 +27,7 @@ ${DOLLAR}(function(){
 	});	
 
 	// Post edit save
-	${DOLLAR}('#btn-save').on('click', function(event) {
+	${DOLLAR}('.btn-save').on('click', function(event) {
 		if (${DOLLAR}(".j-form-validate").valid()) {
 			var url = "${nameLC}/edit";
 			var condition = ${DOLLAR}("#form-edit").serialize();
